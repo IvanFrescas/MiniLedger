@@ -9,6 +9,8 @@
   "author": "Ivan Frescas",
   "license": "ISC",
   "dependencies": {
-    "commander": "^3.0.2"
+    "commander": "^3.0.2",
+    "n-readlines": "^1.0.0",
+    "sprintf-js": "^1.1.2"
   }
 }

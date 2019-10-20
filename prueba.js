@@ -1,70 +1,86 @@
-var fs = require('fs');
-var readline = require('readline');
-var stream = require('stream');
+const readline = require("readline");
+fs = require("fs");
+FILE_NAME = "ledger-sample-files/Income.ledger";
 
-var outstream = new stream();
+let lector = readline.createInterface({
+    input: fs.createReadStream(FILE_NAME)
+});
 
-instream = fs.createReadStream("ledger-sample-files/Income.ledger");
-var rl = readline.createInterface(instream, outstream);
+const RGX_DATE = /\d{4}\/\d{1,2}\/\d{1,2}/;
+const RGX_DESCRIPTION = /[^\d{4}\/\d{1,2}\/\d{1,2}]+/;
+const RGX_ACCOUNT_NAME = /[^\-?\$?\d+\.?\d+$]+/;
+const RGX_MOVEMENT = /\-?\$?\d+\.?\d?.+/;
+const RGX_AMOUNT = /[\-.|\d]/;
+const RGX_AMOUNTTEST = /(\s\-?\$\-*\d+.*)|(\s\-*\d+ \w{2,3})/g;
 
-/* 
-  TRANSACTION_RGX      = /\d{4}\/\d{1,2}\/\d{1,2} .+/
-  TRANSACTION_DATE_RGX = /\d{4}\/\d{1,2}\/\d{1,2}/
-  TRANSACTION_DESC_RGX = /[^\d{4}\/\d{1,2}\/\d{1,2}]+/
-  ACCOUNT_DESC_RGX     = /[^\-?\$?\d+\.?\d+$]+/
-  ACCOUNT_ACTION_RGX   = /\-?\$?\d+\.?\d?.+/
-  ACCOUNT_AMOUNT_RGX   = /[\-.|\d]/
-  ACCOUNT_CURRENCY_RGX = /[a-zA-z\$]+/
-  COMMENT_RGX          = /[\;#%|*].+/
-  INCLUDE_RGX          = /!include .+/
-  LEDGER_FILE_RGX      = /[\w\/]+\.ledger$/
-*/
+var contador = 0;
+var negcurrency;
 
-let RGX_DATE = /\d{4}\/\d{1,2}\/\d{1,2}/g;
-let RGX_DESCRIPCION = /[^\d{4}\/\d{1,2}\/\d{1,2}]+/g
-let ACOUNTNAME = /\s\w+:\w+/g
-let AMOUNT = /(\s\$\-*\d+.*)|(\s\-*\d+ \w{2,3})/g
+var movement = {};
+var transaccion = {}
+var array_transactions = []
 
-// Podria servir si compruebo que empieza con espacio o tab
-// para antes de : /(\w+:)/g
-// para despues de : (:\w+)
-// para dolares y btc /(\$\d*.*)|(\d+ \w{2,3})/
+function lectura () {
 
 
 
-rl.on('line', function(line){
-    
+lector.on("line", line => {
 
-
-     
-    
-    if(line.match(AMOUNT)) {
-        var space = line.match(AMOUNT).shift().trim();
-        if (space.startsWith('$')) {
-            space = space.replace(/\$/g, '')
-            console.log(space)
-        } else {
-            space = space.split(' ');
-            console.log(space);
-        }
-    } 
-
-
-   /*  Bloque para obtener nombre 
-        if(line.match(ACOUNT)) {
-        var space = line.match(ACOUNT);
-        console.log(space);
+    if  (line.startsWith(";")) {
+        return;
     }
-     */
+
+
+    //FECHA
+    if (line.match(RGX_DATE)){
+        if (JSON.stringify(transaccion)!='{}') {
+            array_transactions.push(transaccion);
+        } 
+        transaccion = { movements: []}
+        
+        var date= (line.match(RGX_DATE).toString());
+        transaccion['date'] = date;
     
-    /*
-    * Bloque para validar la fecha y descripcion
-    if(line.match(RGX_DATE)) {
-        var date = line.match(RGX_DATE).shift();
-        var desc = line.match(RGX_DESCRIPCION).shift().trim();
+        //Decripcion de transaccion
+        var description = (line.match(RGX_DESCRIPTION).toString().trim());
+        transaccion['description'] = description; 
+
         
-        console.log(date);
-        console.log(desc);
+
+        return;
         
-    } */
-})
+    } else if (line.match(RGX_ACCOUNT_NAME)) {
+        movement['description'] = line.match(RGX_ACCOUNT_NAME).toString().trim();
+        if (line.match(RGX_AMOUNTTEST)) {
+            var cantidad = line.match(RGX_AMOUNTTEST).toString().trim();
+            if (cantidad.startsWith('$')|| cantidad.startsWith('-$')) {
+                cantidad = cantidad.replace('$','');
+                var monto = parseFloat(cantidad);
+                var currency = 'USD';
+            } else {
+                cantidad = cantidad.split(' ');
+                var monto = parseFloat(cantidad[0]);
+                var currency = cantidad[1];
+            }
+            contador += monto;
+            negcurrency = currency;
+            
+            movement['amount'] = monto;
+            movement['currency'] = currency;
+            account = {}
+        } else {
+            movement['amount'] = -contador;
+            movement['currency'] = negcurrency;
+            account = {}
+            contador = 0;
+        }
+        transaccion['movements'].push(movement);
+        movement = {}
+    }    
+    
+});
+
+}
+lectura()
+
+

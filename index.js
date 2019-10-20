@@ -16,11 +16,10 @@ program
 .command('balance <args>')
 .alias('bal')
 .description('Print a balance report showing totals for postings that match report-query, and aggregate totals for parents of those accounts')
-.action(
-    () => {
-        console.log('balance')
-    }
-)
+.action(function (file) {
+    const Balance = require("./Balance");
+    Balance(file)   
+})
 
 program
 .command('print')
@@ -48,3 +47,5 @@ program
 
 
 program.parse(process.argv);
+
+
