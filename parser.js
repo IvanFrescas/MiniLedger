@@ -15,21 +15,19 @@ var movement = {};
 var transaccion = {}
 var array_transactions = []
 
-
 const parser = (file) => {
+    
     const liner = new lineByLine(`ledger-sample-files/${file}`);
-
     let line;
+  
     while (line = liner.next()) {
         line = line.toString('ascii');
-        // console.log(line)
         
         if  (line.startsWith(";")) {
             
         }
 
-
-    else if (line.match(RGX_DATE)){
+        else if (line.match(RGX_DATE)){
             if (JSON.stringify(transaccion)!='{}') {
                 array_transactions.push(transaccion);
             } 
@@ -71,15 +69,15 @@ const parser = (file) => {
             }
             transaccion['movements'].push(movement);
             movement = {}
-        }    
+        }     
     }
     array_transactions.push(transaccion);
     
-    return array_transactions;
+     // console.log(sprintf("%5j",array_transactions));
+
+     return array_transactions;
+
     
-
-    //  console.log(JSON.stringify(array_transactions));
-
 }
 
 module.exports = parser;
