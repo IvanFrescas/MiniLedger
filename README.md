@@ -4,11 +4,11 @@ A simple implementation of the ledger cli
 ## Getting Started
 To get a local copy up and running follow these simple steps.
 
-1. Install npm
+1. Install NPM
 ```sh
 npm install npm@latest -g
 ```
-2. Insall node js
+2. Install node js
 ```sh
 https://nodejs.org/en/download/
 ```
